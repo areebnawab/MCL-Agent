@@ -1,0 +1,16 @@
+flowchart LR
+    U[Solution consultant] --> UI[Streamlit web frontend]
+    UI --> UP[MCL Excel upload]
+    UI --> LP[Lease Documents folder or file uploads]
+    UP --> ING[Workbook ingestion and header normalization]
+    LP --> READ[PDF / DOCX / TXT text extraction]
+    ING --> G[LangGraph workflow]
+    READ --> G
+    G --> Q[Query planning<br/>LLM optional; rules fallback]
+    Q --> E[Lease evidence extraction<br/>LLM optional; labeled-date rules fallback]
+    E --> M[Deterministic MCL-to-lease matching<br/>lease no. / SO; term + start date fallback]
+    ING --> M
+    M --> R[Renewal results and review flags]
+    R --> XLSX[Excel report<br/>Summary + Renewal Results]
+    XLSX --> UI
+    UI --> D[Download report]
