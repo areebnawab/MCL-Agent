@@ -6,6 +6,7 @@ import os
 import sys
 import time
 import math
+import logging
 from datetime import date, datetime
 from contextvars import ContextVar
 from contextlib import contextmanager
@@ -17,6 +18,7 @@ from mlflow.entities import SpanType
 
 DEFAULT_TRACKING_URI = "http://127.0.0.1:5000"
 DEFAULT_EXPERIMENT = "MCL Renewal Agent"
+logger = logging.getLogger(__name__)
 _ACTIVE_TRACKER: ContextVar["AnalysisTracker | None"] = ContextVar("mcl_mlflow_tracker", default=None)
 
 
@@ -56,6 +58,9 @@ def analysis_run(
         run = run_context.__enter__()
         tracker.run_id = run.info.run_id
     except Exception as exc:
+        # Keep the browser message credential-safe while preserving the
+        # Databricks REST response in Railway's server logs for diagnosis.
+        logger.exception("Could not initialize the MLflow experiment or open a run")
         tracker.failure_reason = f"{type(exc).__name__} while opening the MLflow run at {tracker.tracking_uri}"
         yield tracker
         return

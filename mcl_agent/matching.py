@@ -124,7 +124,11 @@ def _llm_evidence(document: LeaseDocument) -> RenewalEvidence | None:
         return None
     try:
         from langchain_openai import ChatOpenAI
-        model = ChatOpenAI(model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"), temperature=0, api_key=os.getenv("OPENAI_API_KEY"))
+        model = ChatOpenAI(
+            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            temperature=1,
+            api_key=os.getenv("OPENAI_API_KEY"),
+        )
         extractor = model.with_structured_output(RenewalEvidence)
         result = extractor.invoke([
             ("system", "Extract only explicit facts from this lease text. renewal_date is an explicit software/service renewal or term-end date, not signature or shipment date. term_months is the initial lease term converted to months (for example, 3 years = 36); do not confuse payment frequency or equipment age with term length. Extract account_holder only when explicitly labeled as an account holder, contact_name from a Contact field, and license_user only when explicitly labeled. quantity is the number in the row for the named product, not a count of payments or months. Return an ISO date if clear. If a field is absent or ambiguous, leave it null. evidence_quote must quote the relevant date/term context verbatim. Do not infer identifiers."),

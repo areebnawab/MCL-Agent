@@ -98,13 +98,19 @@ def main() -> None:
         )
         return result["answer"]
 
-    judge_model = "openai:/gpt-4o-mini"
+    judge_model = "openai:/gpt-6-luna"
     result = mlflow.genai.evaluate(
         data=dataset,
         predict_fn=predict_fn,
         scorers=[
-            Correctness(model=judge_model),
-            ExpectationsGuidelines(model=judge_model),
+            Correctness(
+                model=judge_model,
+                inference_params={"temperature": 1},
+            ),
+            ExpectationsGuidelines(
+                model=judge_model,
+                inference_params={"temperature": 1},
+            ),
         ],
     )
     mlflow.flush_trace_async_logging()

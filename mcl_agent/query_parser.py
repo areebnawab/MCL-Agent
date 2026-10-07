@@ -55,7 +55,11 @@ def parse_query(query: str) -> QueryPlan:
         return _rule_based_plan(query)
     try:
         from langchain_openai import ChatOpenAI
-        model = ChatOpenAI(model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"), temperature=0, api_key=api_key)
+        model = ChatOpenAI(
+            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            temperature=1,
+            api_key=api_key,
+        )
         parser = model.with_structured_output(QueryPlan)
         parsed = parser.invoke([
             ("system", "Extract search filters and named entities from the user question. Only set a time window when stated or clearly implied. Do not invent company or region values. Use product_terms for explicit product/software concepts, target_user for the person whose records are requested, and account_holder for an explicitly named main/primary account holder. Preserve names as written. If a value is ambiguous, leave it empty."),
