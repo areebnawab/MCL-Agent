@@ -38,6 +38,22 @@ def configure_mlflow() -> str:
     return experiment.experiment_id
 
 
+def _tracking_ui_url(tracking_uri: str) -> str:
+    """Return a browser URL for the tracking server, not its MLflow URI."""
+    if tracking_uri == "databricks":
+        # `databricks` is an MLflow protocol URI, not a browser address.
+        return os.getenv("DATABRICKS_HOST", "").rstrip("/")
+    return tracking_uri.rstrip("/")
+
+
+def _experiment_traces_url(tracking_uri: str, experiment_id: str) -> str:
+    """Build the experiment's trace page URL for the configured tracking server."""
+    if tracking_uri == "databricks":
+        host = os.getenv("DATABRICKS_HOST", "").rstrip("/")
+        return f"{host}/ml/experiments/{experiment_id}/traces" if host else ""
+    return f"{tracking_uri.rstrip('/')}/#/experiments/{experiment_id}/traces?workflowType=genai"
+
+
 @contextmanager
 def analysis_run(
     *, query_chars: int, mcl_row_count: int, document_count: int
@@ -49,11 +65,10 @@ def analysis_run(
     """
     tracker = AnalysisTracker()
     tracker.tracking_uri = os.getenv("MLFLOW_TRACKING_URI", DEFAULT_TRACKING_URI)
+    tracker.tracking_url = _tracking_ui_url(tracker.tracking_uri)
     try:
         experiment_id = configure_mlflow()
-        tracker.traces_url = (
-            f"{tracker.tracking_uri.rstrip('/')}/#/experiments/{experiment_id}/traces?workflowType=genai"
-        )
+        tracker.traces_url = _experiment_traces_url(tracker.tracking_uri, experiment_id)
         run_context = mlflow.start_run(run_name="renewal-analysis")
         run = run_context.__enter__()
         tracker.run_id = run.info.run_id
@@ -120,6 +135,7 @@ class AnalysisTracker:
         self.enabled = False
         self.run_id: str | None = None
         self.tracking_uri: str = DEFAULT_TRACKING_URI
+        self.tracking_url: str = DEFAULT_TRACKING_URI
         self.traces_url: str = DEFAULT_TRACKING_URI
         self.failure_reason: str | None = None
         self.span_failures = 0

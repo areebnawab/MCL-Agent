@@ -135,16 +135,19 @@ def main() -> None:
     summary = result["summary"]
     if tracker.enabled and not tracker.span_failures:
         st.caption(f"Analysis and traces recorded in MLflow (run `{tracker.run_id}`).")
-        st.link_button("Open this experiment’s traces", tracker.traces_url)
+        if tracker.traces_url:
+            st.link_button("Open this experiment’s traces", tracker.traces_url)
     elif tracker.enabled:
         st.warning(f"MLflow run `{tracker.run_id}` was recorded, but trace spans could not all be saved.")
         if tracker.failure_reason:
             st.caption(tracker.failure_reason)
-        st.link_button("Open this experiment’s traces", tracker.traces_url)
+        if tracker.traces_url:
+            st.link_button("Open this experiment’s traces", tracker.traces_url)
     else:
         reason = tracker.failure_reason or "MLflow was unavailable."
         st.warning(f"This analysis completed without MLflow telemetry. {reason}")
-        st.link_button("Open MLflow", tracker.tracking_uri)
+        if tracker.tracking_url:
+            st.link_button("Open MLflow", tracker.tracking_url)
     c1, c2, c3 = st.columns(3)
     c1.metric("MCL rows checked", summary["mcl_rows_checked"])
     c2.metric("Matching users / records", summary["matched_rows"])
